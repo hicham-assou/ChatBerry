@@ -1,4 +1,3 @@
-// chat.controller.ts
 import * as readline from 'readline';
 import chalk from 'chalk';
 import { ChatService } from '../Services/chat.service';
