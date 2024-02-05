@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/ChatBerry.iml" filepath="$PROJECT_DIR$/.idea/ChatBerry.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ChatBerry-front/.idea/ChatBerry-front.iml" filepath="$PROJECT_DIR$/../ChatBerry-front/.idea/ChatBerry-front.iml" />
     </modules>
   </component>
 </project>

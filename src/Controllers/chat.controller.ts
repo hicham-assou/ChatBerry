@@ -1,7 +1,7 @@
-import * as readline from 'readline';
-import chalk from 'chalk';
 import { ChatService } from '../Services/chat.service';
 import { ChatMessage } from '../Interfaces/chat.interface';
+import { Request, Response } from 'express';
+
 
 export class ChatController {
     private service: ChatService;
@@ -12,39 +12,37 @@ export class ChatController {
         this.messages = [];
     }
 
-    startChatInterface(): void {
-        const userInterface = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-        });
+    async handleUserInput(input: string) {
+        const requestMessage: ChatMessage = {
+            role: 'user',
+            content: input,
+        };
+        this.messages.push(requestMessage);
 
-        userInterface.setPrompt(`${chalk.blue('You: ')}`);
-        userInterface.prompt();
+        try {
+            // Envoyez la demande au service de chat
+            const completion = await this.service.getChatCompletion(this.messages);
+            const responseMessage = completion.choices[0].message.content;
 
-        userInterface.on('line', async (input) => {
-            const requestMessage: ChatMessage = {
-                role: 'user',
-                content: input,
-            };
-            this.messages.push(requestMessage);
-
-            try {
-                const completion = await this.service.getChatCompletion(this.messages);
-                const responseMessage = completion.choices[0].message;
-
-                if (responseMessage) {
-                    console.log("Berry : " + chalk.green(responseMessage.content));
-                    this.messages.push(responseMessage);
-                }
-            } catch (error) {
-                console.error("Error communicating with OpenAI API:", error);
+            if (responseMessage) {
+                this.messages.push({ role: 'system', content: responseMessage });
+                return responseMessage;
             }
+        } catch (error) {
+            console.error("Erreur de communication avec le service de chat:", error);
+            throw new Error('Erreur de communication avec le service de chat');
+        }
+    }
 
-            userInterface.prompt();
-        });
+    async handleChatRequest(req: Request, res: Response): Promise<void> {
+        const userInput = req.body.content;
 
-        userInterface.on('close', () => {
-            console.log(chalk.blue('Thank you for using this Demo'));
-        });
+        try {
+            const responseMessage = await this.handleUserInput(userInput);
+            res.json({ message: responseMessage });
+        } catch (error) {
+            console.error("Erreur lors du traitement de la demande:", error);
+            res.status(500).json({ error: 'Erreur de communication avec le service de chat' });
+        }
     }
 }
