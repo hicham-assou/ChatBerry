@@ -28,5 +28,5 @@ app.post('/chat', async (req, res) => {
 
 // Démarrer le serveur
 app.listen(port, () => {
-    console.log(`Le serveur est en écoute sur le port ${port} ✅ `);
+    console.log(`Le serveur est en écoute sur le port ${port} ✅         http://localhost:3000/`);
 });
