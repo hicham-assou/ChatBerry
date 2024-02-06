@@ -1,7 +1,9 @@
 import OpenAI from 'openai';
+import dotenv from 'dotenv';
 
+dotenv.config();
 const openai = new OpenAI({
-    apiKey: "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",
+    apiKey: process.env['OPENAI_API_KEY'],
 });
 
 export class ChatService {
