@@ -8,6 +8,7 @@ const openai = new OpenAI({
 
 export class ChatService {
 
+
     public async sendMessage(message: string): Promise<any> {
         const response = await openai.chat.completions.create({
             messages: [{ role: 'user', content: message }],
