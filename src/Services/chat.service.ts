@@ -1,7 +1,6 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import promptGpt from "../utils/prompts/prompt.gpt";
-import * as http from "http";
 
 dotenv.config();
 const openai = new OpenAI({
@@ -9,33 +8,19 @@ const openai = new OpenAI({
 });
 
 const listMessages:string[] = []
-let role: string = ''
-
-
 
 export class ChatService {
 
-    public async sendMessage(message: string, newRole: string): Promise<any> {
+    public async sendMessage(message: string): Promise<any> {
         let newMessage:string = '';
 
-        if (newRole != '' && newRole != role){ // nouveau role
-            role = newRole;
+        if (listMessages.length != 0){
+            newMessage = promptGpt.promptMessage(listMessages, message);
+        }else
+            newMessage = message;
 
-            if (listMessages.length != 0){
-                newMessage = promptGpt.promptMessageWithRole(listMessages, message, role)
-            }else
-                newMessage = role + '\n' + message
+        listMessages.push(' << moi : ' + message + '>>')
 
-            listMessages.push(' << moi : ' + role + ', ' + message + '>>');
-
-        }else{
-            if (listMessages.length != 0){
-                newMessage = promptGpt.promptMessage(listMessages, message);
-            }else
-                newMessage = message;
-
-            listMessages.push(' << moi : ' + message + '>>')
-        }
 
         const response = await openai.chat.completions.create({
             messages: [{ role: 'user', content: newMessage }/*, {role: 'system', content:'tu es expert en programmation'}*/],
@@ -47,7 +32,6 @@ export class ChatService {
 
         console.log('=> '+ newMessage)
         console.log('=> '+ listMessages)
-
 
         return response.choices[0].message.content;
     }
