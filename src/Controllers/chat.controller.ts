@@ -7,7 +7,7 @@ export default abstract class ChatController {
         const chatService = new ChatService();
         try {
             const { message } = req.body;
-            const response = await chatService.sendMessage(message);
+            const response = await chatService.sendMessage(message, '');
             res.json({ response });
         } catch (error) {
             res.status(500).json({ error: error });

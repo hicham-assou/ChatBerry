@@ -1,5 +1,7 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import promptGpt from "../utils/prompts/prompt.gpt";
+import * as http from "http";
 
 dotenv.config();
 const openai = new OpenAI({
@@ -7,28 +9,45 @@ const openai = new OpenAI({
 });
 
 const listMessages:string[] = []
+let role: string = ''
+
+
+
 export class ChatService {
 
-
-    public async sendMessage(message: string): Promise<any> {
-        listMessages.push(' << me : ' + message + '>>')
+    public async sendMessage(message: string, newRole: string): Promise<any> {
         let newMessage:string = '';
-        if (listMessages.length != 0){
-            newMessage = 'je vais te donner un nouveau prompt et l\'historique de notre conversation et j\'aimerai que tu me reponde sans reprendre tout l\'historique,' +
-                ' chaque message est deliimité par + \'<<>>\'. voici l\'historique : '+ listMessages + '. Il faut avoir une conversation fluide comme si je parlais à un humain,' +
-                ' voici le nouveau prompt auquel il faut repondre,: '
-                +'<< ' + message + ' >>';
-        }else
-            newMessage = message
+
+        if (newRole != '' && newRole != role){ // nouveau role
+            role = newRole;
+
+            if (listMessages.length != 0){
+                newMessage = promptGpt.promptMessageWithRole(listMessages, message, role)
+            }else
+                newMessage = role + '\n' + message
+
+            listMessages.push(' << moi : ' + role + ', ' + message + '>>');
+
+        }else{
+            if (listMessages.length != 0){
+                newMessage = promptGpt.promptMessage(listMessages, message);
+            }else
+                newMessage = message;
+
+            listMessages.push(' << moi : ' + message + '>>')
+        }
 
         const response = await openai.chat.completions.create({
-            messages: [{ role: 'user', content: newMessage }],
+            messages: [{ role: 'user', content: newMessage }/*, {role: 'system', content:'tu es expert en programmation'}*/],
             model: 'gpt-3.5-turbo-16k',
             temperature: 0,
         });
-        listMessages.push(' << you : ' + response.choices[0].message.content + '>>')
 
-        console.log("=> " + listMessages)
+        listMessages.push(' << toi : ' + response.choices[0].message.content + '>>')
+
+        console.log('=> '+ newMessage)
+        console.log('=> '+ listMessages)
+
 
         return response.choices[0].message.content;
     }
